@@ -4,7 +4,7 @@ import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Sparkles, User } from 'lucide-react';
 
 type Message = {
   id: string;
@@ -15,7 +15,6 @@ type Message = {
 export default function MessageBubble({ message }: { message: Message }) {
   const isUser = message.role === 'user';
 
-  // Extract text from parts (AI SDK v7 format)
   const content =
     message.parts
       ?.filter((p) => p.type === 'text')
@@ -23,80 +22,77 @@ export default function MessageBubble({ message }: { message: Message }) {
       .join('') ?? '';
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div className={`group flex gap-3 ${isUser ? 'flex-row-reverse' : ''} animate-in`}>
+      {/* Avatar */}
       <div
-        className={`max-w-[90%] md:max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
           isUser
-            ? 'bg-blue-600 text-white whitespace-pre-wrap'
-            : 'bg-gray-900 border border-gray-800 text-gray-100'
+            ? 'bg-slate-800 ring-1 ring-slate-700'
+            : 'bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/20'
         }`}
       >
         {isUser ? (
-          <span>{content}</span>
+          <User size={14} className="text-slate-300" />
         ) : (
-          <ReactMarkdown
-            components={{
-              code({ inline, className, children, ...props }: any) {
-                const match = /language-(\w+)/.exec(className || '');
-                const code = String(children).replace(/\n$/, '');
+          <Sparkles size={14} className="text-white" />
+        )}
+      </div>
 
-                if (inline) {
-                  return (
-                    <code
-                      className="rounded bg-gray-800 px-1.5 py-0.5 text-[0.85em] text-pink-300"
-                      {...props}
+      {/* Bubble */}
+      <div className={`flex-1 min-w-0 ${isUser ? 'flex justify-end' : ''}`}>
+        <div
+          className={`inline-block max-w-full rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+            isUser
+              ? 'rounded-tr-sm bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/20'
+              : 'rounded-tl-sm border border-slate-800 bg-slate-900/60 text-slate-100 backdrop-blur'
+          }`}
+        >
+          {isUser ? (
+            <span className="whitespace-pre-wrap">{content}</span>
+          ) : (
+            <div className="prose prose-invert prose-sm max-w-none">
+              <ReactMarkdown
+                components={{
+                  code({ inline, className, children, ...props }: any) {
+                    const match = /language-(\w+)/.exec(className || '');
+                    const code = String(children).replace(/\n$/, '');
+                    if (inline) {
+                      return (
+                        <code className="rounded bg-slate-800 px-1.5 py-0.5 text-[0.85em] font-mono text-pink-300">
+                          {children}
+                        </code>
+                      );
+                    }
+                    return <CodeBlock language={match?.[1] || 'text'} code={code} />;
+                  },
+                  p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
+                  ul: ({ children }) => <ul className="mb-3 list-disc space-y-1 pl-5">{children}</ul>,
+                  ol: ({ children }) => <ol className="mb-3 list-decimal space-y-1 pl-5">{children}</ol>,
+                  h1: ({ children }) => <h1 className="mb-3 mt-4 text-lg font-bold">{children}</h1>,
+                  h2: ({ children }) => <h2 className="mb-2 mt-3 text-base font-bold">{children}</h2>,
+                  h3: ({ children }) => <h3 className="mb-2 mt-3 text-sm font-bold">{children}</h3>,
+                  a: ({ href, children }) => (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-400 underline decoration-indigo-400/50 hover:text-indigo-300"
                     >
                       {children}
-                    </code>
-                  );
-                }
-
-                return (
-                  <CodeBlock language={match?.[1] || 'text'} code={code} />
-                );
-              },
-              p({ children }) {
-                return <p className="mb-3 last:mb-0 leading-relaxed">{children}</p>;
-              },
-              ul({ children }) {
-                return <ul className="mb-3 list-disc pl-5 space-y-1">{children}</ul>;
-              },
-              ol({ children }) {
-                return <ol className="mb-3 list-decimal pl-5 space-y-1">{children}</ol>;
-              },
-              h1({ children }) {
-                return <h1 className="mb-3 mt-4 text-lg font-bold">{children}</h1>;
-              },
-              h2({ children }) {
-                return <h2 className="mb-2 mt-3 text-base font-bold">{children}</h2>;
-              },
-              h3({ children }) {
-                return <h3 className="mb-2 mt-3 text-sm font-bold">{children}</h3>;
-              },
-              a({ href, children }) {
-                return (
-                  <a
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 underline"
-                  >
-                    {children}
-                  </a>
-                );
-              },
-              blockquote({ children }) {
-                return (
-                  <blockquote className="border-l-2 border-gray-600 pl-3 italic text-gray-400 my-2">
-                    {children}
-                  </blockquote>
-                );
-              },
-            }}
-          >
-            {content}
-          </ReactMarkdown>
-        )}
+                    </a>
+                  ),
+                  blockquote: ({ children }) => (
+                    <blockquote className="my-2 border-l-2 border-indigo-500/50 pl-3 italic text-slate-400">
+                      {children}
+                    </blockquote>
+                  ),
+                }}
+              >
+                {content}
+              </ReactMarkdown>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -112,15 +108,15 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
   };
 
   return (
-    <div className="my-3 overflow-hidden rounded-lg border border-gray-700 bg-[#282c34]">
-      <div className="flex items-center justify-between bg-gray-800 px-3 py-1.5 text-xs text-gray-300">
-        <span className="font-mono lowercase">{language}</span>
+    <div className="my-3 overflow-hidden rounded-xl border border-slate-800 bg-[#0d1117] shadow-lg">
+      <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900/80 px-3 py-2 text-xs">
+        <span className="font-mono lowercase text-slate-400">{language}</span>
         <button
           onClick={copy}
-          className="flex items-center gap-1 rounded px-2 py-0.5 text-xs hover:bg-gray-700 transition-colors"
+          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
         >
-          {copied ? <Check size={12} /> : <Copy size={12} />}
-          {copied ? 'Copied' : 'Copy'}
+          {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+          <span className={copied ? 'text-emerald-400' : ''}>{copied ? 'Copied' : 'Copy'}</span>
         </button>
       </div>
       <div className="overflow-x-auto">

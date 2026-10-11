@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, X, MessageSquare, Trash2 } from 'lucide-react';
+import { Plus, X, MessageSquare, Trash2, Sparkles, Search } from 'lucide-react';
 
 type Chat = {
   id: string;
@@ -32,26 +32,33 @@ export default function Sidebar({
       {open && (
         <div
           onClick={onClose}
-          className="fixed inset-0 z-30 bg-black/60 md:hidden"
+          className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm md:hidden"
           aria-hidden="true"
         />
       )}
 
       {/* Sidebar panel */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-gray-800 bg-gray-950 transition-transform duration-200 md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-800/60 bg-slate-950/95 backdrop-blur-xl transition-transform duration-200 md:static md:translate-x-0 ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-800 px-4 py-3">
-          <h2 className="text-sm font-semibold text-gray-200">Chats</h2>
+        {/* Logo header */}
+        <div className="flex items-center justify-between border-b border-slate-800/60 px-4 py-3.5">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/30">
+              <Sparkles size={14} className="text-white" />
+            </div>
+            <span className="text-sm font-semibold tracking-tight text-slate-100">
+              CodePilot
+            </span>
+          </div>
           <button
             onClick={onClose}
-            className="rounded-md p-1 text-gray-400 hover:bg-gray-800 hover:text-white md:hidden"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800/60 hover:text-slate-100 md:hidden transition-colors"
             aria-label="Close sidebar"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
@@ -59,57 +66,88 @@ export default function Sidebar({
         <div className="p-3">
           <button
             onClick={onNewChat}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:shadow-indigo-500/40"
           >
-            <Plus size={16} />
+            <Plus
+              size={14}
+              className="transition-transform duration-200 group-hover:rotate-90"
+            />
             New Chat
           </button>
+        </div>
+
+        {/* Search (placeholder — becomes functional in a later step) */}
+        <div className="px-3 pb-3">
+          <div className="flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/50 px-3 py-2 text-xs text-slate-500">
+            <Search size={12} />
+            <span>Search chats…</span>
+          </div>
+        </div>
+
+        {/* Section label */}
+        <div className="px-4 pb-1">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
+            Recent
+          </p>
         </div>
 
         {/* Chat list */}
         <nav className="flex-1 overflow-y-auto px-2 pb-3">
           {chats.length === 0 ? (
-            <p className="px-3 py-4 text-xs text-gray-500">
+            <p className="px-3 py-4 text-xs text-slate-500">
               No conversations yet. Start a new chat!
             </p>
           ) : (
-            <ul className="space-y-1">
-              {chats.map((chat) => (
-                <li key={chat.id}>
-                  <div
-                    className={`group flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
-                      activeChatId === chat.id
-                        ? 'bg-gray-800 text-white'
-                        : 'text-gray-300 hover:bg-gray-900'
-                    }`}
-                  >
-                    <button
-                      onClick={() => {
-                        onSelectChat(chat.id);
-                        onClose();
-                      }}
-                      className="flex flex-1 items-center gap-2 truncate text-left"
+            <ul className="space-y-0.5">
+              {chats.map((chat) => {
+                const isActive = activeChatId === chat.id;
+                return (
+                  <li key={chat.id}>
+                    <div
+                      className={`group flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                        isActive
+                          ? 'bg-slate-800/80 text-slate-100'
+                          : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200'
+                      }`}
                     >
-                      <MessageSquare size={14} className="shrink-0" />
-                      <span className="truncate">{chat.title}</span>
-                    </button>
-                    <button
-                      onClick={() => onDeleteChat(chat.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity rounded p-0.5 text-gray-500 hover:bg-gray-700 hover:text-red-400"
-                      aria-label="Delete chat"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </li>
-              ))}
+                      <button
+                        onClick={() => {
+                          onSelectChat(chat.id);
+                          onClose();
+                        }}
+                        className="flex flex-1 items-center gap-2.5 truncate text-left"
+                      >
+                        <MessageSquare
+                          size={14}
+                          className={`shrink-0 ${
+                            isActive ? 'text-indigo-400' : 'opacity-60'
+                          }`}
+                        />
+                        <span className="truncate">{chat.title}</span>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteChat(chat.id);
+                        }}
+                        className="rounded p-1 text-slate-500 opacity-0 transition-all hover:bg-slate-800 hover:text-red-400 group-hover:opacity-100"
+                        aria-label="Delete chat"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-gray-800 px-4 py-3 text-xs text-gray-500">
-          AI can make mistakes. Verify important code.
+        <div className="border-t border-slate-800/60 px-4 py-3">
+          <p className="text-[10px] leading-relaxed text-slate-500">
+            AI can make mistakes. Verify important code.
+          </p>
         </div>
       </aside>
     </>
